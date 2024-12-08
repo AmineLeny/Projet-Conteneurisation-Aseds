@@ -1,0 +1,17 @@
+# Ignore everything by default
+*
+
+# Allow required files for the Maven build stage
+!pom.xml
+!src/**
+
+# Allow the JAR file created during the Maven build stage
+!target/StudentApp-0.0.1-SNAPSHOT.jar
+
+# Ignore unnecessary IDE and system files
+.git/
+.idea/
+*.log
+*.iml
+*.class
+.DS_Store
