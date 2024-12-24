@@ -1,0 +1,31 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: app-ingress
+  namespace: exam
+  annotations:
+    kubernetes.io/ingress.class: "nginx"  # Specify the ingress controller
+    nginx.ingress.kubernetes.io/rewrite-target: /  # Rewrite rule
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"  # Disable HTTPS redirect
+spec:
+  rules:
+    - host: frontendtest.com  # Domain for the frontend
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend  # Frontend service name
+                port:
+                  number: 80  # Make sure the frontend service is running on HTTP (port 80)
+    - host: backendtest.com  # Domain for the backend
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: backend  # Backend service name
+                port:
+                  number: 8080  # Make sure the backend service is running on HTTP (port 8080)

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: exam
+data:
+  VITE_BACKEND_URL: "http://backendtest.com"

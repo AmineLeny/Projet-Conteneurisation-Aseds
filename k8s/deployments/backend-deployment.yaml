@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  namespace: exam
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: amineleny3/backend-image:latest  # Updated image
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_HOST
+              value: "postgres-container"  # The name of the Postgres service
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: db-user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secret
+                  key: db-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+  namespace: exam
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8080  # Exposing the backend on port 8080
+      targetPort: 8080
+  type: ClusterIP  # Can be changed to LoadBalancer or NodePort depending on the use case
