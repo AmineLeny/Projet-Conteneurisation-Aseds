@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+// Get the backend URL from the environment variable, with a default fallback
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 export const addGrade = async (student, matiere, note) => {
   // Basic validation to ensure that matiere and note are provided
   if (!matiere.trim() || !note) {
@@ -9,7 +11,7 @@ export const addGrade = async (student, matiere, note) => {
   try {
     // Make the API request to add a grade
     const addGradeResponse = await axios.post(
-      `http://localhost:8080/grades?studentId=${student.id}&courseName=${matiere}&value=${note}`
+      `${BACKEND_URL}/grades?studentId=${student.id}&courseName=${matiere}&value=${note}`
     );
 
     // Check if the response status is successful (200-299)

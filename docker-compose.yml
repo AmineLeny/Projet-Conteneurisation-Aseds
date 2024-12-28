@@ -1,0 +1,96 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v2.10
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:8081"
+    ports:
+      - "8081:8081" # Traefik dashboard
+      - "8082:8082" # Traefik API
+      - "80:80"     # Expose HTTP for frontend/backend via Traefik
+    networks:
+      - student_app_network
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
+
+  postgres-container:
+    image: postgres
+    networks:
+      - student_app_network
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: amine123
+      POSTGRES_DB: student_db
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
+    labels:
+      - "traefik.enable=false" # Don't expose the Postgres container to Traefik
+
+  backend:
+    image: backend-image
+    networks:
+      - student_app_network
+    depends_on:
+      - postgres-container
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`backend.com`)" # Only for external access via Traefik
+      - "traefik.http.services.backend.loadbalancer.server.port=8080"
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
+
+  frontend:
+    image: frontend-image
+    environment:
+      - REACT_APP_BACKEND_URL=http://backend.com:8081
+    env_file:
+      - .env
+    networks:
+      - student_app_network
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`frontend.com`)" # Only for external access via Traefik
+      - "traefik.http.services.frontend.loadbalancer.server.port=5173"
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "512M"
+      restart_policy:
+        condition: on-failure
+
+networks:
+  student_app_network:
+    driver: overlay
+
+volumes:
+  postgres_data:
+    driver: local
